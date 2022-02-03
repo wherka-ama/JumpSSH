@@ -22,7 +22,7 @@ class DockerEnv(object):
         if options:
             dockerenv_options.update(options)
 
-        project = project_from_options(str(TESTS_DIR), dockerenv_options)
+        project = project_from_options(os.path.join(str(TESTS_DIR), 'docker'), dockerenv_options)
         self.cmd = TopLevelCommand(project)
         self.cmd.up(dockerenv_options)
 
@@ -34,7 +34,7 @@ class DockerEnv(object):
             "--no-deps": False,
             "--abort-on-container-exit": False,
             "SERVICE": "",
-            "--remove-orphans": False,
+            "--remove-orphans": True,
             "--no-recreate": True,
             "--force-recreate": False,
             "--build": False,
@@ -45,7 +45,9 @@ class DockerEnv(object):
             "--follow": False,
             "--timestamps": False,
             "--tail": "all",
+            "--no-log-prefix": False,
             "--always-recreate-deps": True,
+            "--pull": True,
             "--scale": [],
             "--detach": True,
         }

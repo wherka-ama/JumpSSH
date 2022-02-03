@@ -276,7 +276,7 @@ def test_run_cmd_interrupt_remote_command(docker_env, monkeypatch, caplog):
         with mock.patch('select.select', side_effect=KeyboardInterrupt('Fake Ctrl-C')):
             # request to terminate remote command simulating the user entering "Y" in the terminal
             monkeypatch.setattr(mock_input, lambda x: "Y")
-            gateway_session.run_cmd('sleep 30')
+            gateway_session.run_cmd('sleep 30', get_pty=True)
 
     # check command is no longer running on remote host
     assert gateway_session.get_exit_code('ps aux | grep -v grep | grep "sleep 30"') == 1
@@ -287,7 +287,7 @@ def test_run_cmd_interrupt_remote_command(docker_env, monkeypatch, caplog):
         with mock.patch('select.select', side_effect=KeyboardInterrupt('Fake Ctrl-C')):
             # request to terminate remote command simulating the user entering "N" in the terminal
             monkeypatch.setattr(mock_input, lambda x: "N")
-            gateway_session.run_cmd('sleep 40')
+            gateway_session.run_cmd('sleep 40', get_pty=True)
 
     # check command is still running on remote host
     assert gateway_session.get_exit_code('ps aux | grep -v grep | grep "sleep 40"') == 0
@@ -298,7 +298,7 @@ def test_run_cmd_interrupt_remote_command(docker_env, monkeypatch, caplog):
         with mock.patch('select.select', side_effect=KeyboardInterrupt('Fake Ctrl-C')):
             # send empty string simulating the user pressing enter in the terminal
             monkeypatch.setattr(mock_input, lambda x: '')
-            gateway_session.run_cmd('sleep 50')
+            gateway_session.run_cmd('sleep 50', get_pty=True)
 
     # check command is no longer running on remote host
     assert gateway_session.get_exit_code('ps aux | grep -v grep | grep "sleep 50"') == 1
@@ -309,7 +309,7 @@ def test_run_cmd_interrupt_remote_command(docker_env, monkeypatch, caplog):
         with mock.patch('select.select', side_effect=KeyboardInterrupt('Fake Ctrl-C')):
             # user press a second time Contrl-C
             with mock.patch(mock_input, side_effect=KeyboardInterrupt('2nd Fake Ctrl-C')):
-                gateway_session.run_cmd('sleep 60')
+                gateway_session.run_cmd('sleep 60', get_pty=True)
 
     # check command is still running on remote host
     assert gateway_session.get_exit_code('ps aux | grep -v grep | grep "sleep 60"') == 0
@@ -323,7 +323,7 @@ def test_run_cmd_interrupt_remote_command(docker_env, monkeypatch, caplog):
             # but user answered after 4s while command finished after 3s so underline channel is already closed
             # and command still successfully run
             monkeypatch.setattr(mock_input, lambda x: time.sleep(4) or "Y")
-            gateway_session.run_cmd('sleep 3')
+            gateway_session.run_cmd('sleep 3', get_pty=True)
     assert 'Remote command execution already finished with exit code' in caplog.text
 
     # 6. user press Contrl-C once but take time to answer if remote must be closed or not, and channel is closed
@@ -334,7 +334,7 @@ def test_run_cmd_interrupt_remote_command(docker_env, monkeypatch, caplog):
             # request to terminate remote command simulating the user entering "Y" in the terminal
             # but user answered after 4s while command finished after 3s so underline channel is already closed
             monkeypatch.setattr('paramiko.channel.Channel.recv_exit_status', lambda x: -1)
-            gateway_session.run_cmd('sleep 3')
+            gateway_session.run_cmd('sleep 3', get_pty=True)
     assert 'Unable to terminate remote command because channel is closed.' in caplog.text
 
 
@@ -370,7 +370,8 @@ def test_input_data(docker_env):
 
     # with input given, command should run correctly and return the value entered
     assert gateway_session.get_cmd_output(commands,
-                                          input_data={'Requesting user input value': 'dummy_value'}
+                                          input_data={'Requesting user input value': 'dummy_value'},
+                                          get_pty=True
                                           ).split()[-1] == "dummy_value"
 
 

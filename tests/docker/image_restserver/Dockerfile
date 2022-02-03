@@ -1,5 +1,7 @@
 FROM jumpssh/image_sshd:latest
 
+ADD app.py /restserver/app.py
+
 RUN apk add --update \
     python3 \
     py3-pip \
@@ -7,13 +9,11 @@ RUN apk add --update \
   && pip install flask -U \
   && rm -rf /var/cache/apk/* \
   && adduser -D app \
-  && mkdir /restserver  \
-  && chown -R app:app /restserver
+  && mkdir -p /restserver \
+  && chown -R app:app /restserver \
+  && chmod a+rx /restserver/app.py
 
 USER app
-
-# add directly the jar
-ADD app.py /restserver/app.py
 
 CMD python3 /restserver/app.py
 

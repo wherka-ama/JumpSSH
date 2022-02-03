@@ -1,8 +1,3 @@
-try:
-    from pathlib import Path
-except ImportError:
-    from pathlib2 import Path
-
 import pytest
 
 from . import util as tests_util
@@ -21,7 +16,8 @@ def docker_env(docker_compose_file, pytestconfig):
     options = {
         # user explicitely asked to rebuild docker images (even if they are already built)
         '--build': pytestconfig.getoption("rebuild"),
+        '--pull': pytestconfig.getoption("pull", True),
     }
-    docker_compose_env = tests_util.DockerEnv(str(Path("docker") / docker_compose_file), options=options)
+    docker_compose_env = tests_util.DockerEnv(docker_compose_file, options=options)
     yield docker_compose_env
     docker_compose_env.clean()
